@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>C500 HarbourStay Video Studio</title>
+  <style>
+    :root { --ink:#172033; --muted:#667085; --line:#d8dee9; --blue:#2563eb; --purple:#6d28d9; --ice:#f6f7fb; --ok:#087a55; --bad:#b42318; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--ink); background:radial-gradient(circle at 12% 12%,#dbeafe,transparent 32%),radial-gradient(circle at 88% 6%,#ede9fe,transparent 30%),#f8fafc; }
+    main { width:min(1120px,calc(100% - 32px)); margin:32px auto; }
+    header { display:flex; justify-content:space-between; gap:22px; align-items:end; margin-bottom:22px; }
+    .eyebrow { margin:0 0 5px; color:var(--purple); font-weight:850; letter-spacing:.12em; text-transform:uppercase; font-size:12px; }
+    h1 { margin:0; font-size:clamp(30px,5vw,54px); line-height:1; }
+    header p { max-width:480px; color:var(--muted); }
+    .grid { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr); gap:22px; }
+    .card { padding:24px; background:#fff; border:1px solid var(--line); border-radius:20px; box-shadow:0 18px 44px rgba(29,41,57,.08); }
+    label { display:block; margin:13px 0 6px; font-weight:750; }
+    input,textarea { width:100%; border:1px solid #b9c3d1; border-radius:10px; padding:10px 12px; font:inherit; color:inherit; }
+    textarea { min-height:118px; resize:vertical; }
+    .two { display:grid; grid-template-columns:1fr 160px; gap:14px; }
+    .approval { padding:14px; margin:18px 0; background:#fff7ed; border:1px solid #fed7aa; border-radius:12px; }
+    .approval textarea { min-height:150px; background:#fff; }
+    button { border:0; border-radius:999px; padding:12px 20px; color:#fff; background:linear-gradient(100deg,var(--blue),var(--purple)); font:800 15px/1 inherit; cursor:pointer; }
+    button.secondary { color:#3d276f; background:#ede9fe; }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; }
+    pre { min-height:300px; margin:0; padding:16px; overflow:auto; white-space:pre-wrap; border-radius:14px; background:#101828; color:#e6edf7; }
+    #status { margin:14px 0; color:var(--muted); }
+    #status.ok { color:var(--ok); } #status.bad { color:var(--bad); }
+    a { color:var(--blue); }
+    .small { color:var(--muted); font-size:13px; }
+    @media(max-width:800px){ header{display:block}.grid{grid-template-columns:1fr}.two{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div><p class="eyebrow">C500 · Lab 3 · Private synthetic preview</p><h1>HarbourStay Video Studio</h1></div>
+    <p>Draft first, review the exact hashed script, then authorise one render. The render request never regenerates the approved wording.</p>
+  </header>
+  <section class="grid">
+    <form class="card" id="brief">
+      <label for="url">n8n Webhook URL</label>
+      <input id="url" type="url" placeholder="https://your-n8n.example/webhook-test/c500-avatar-video">
+      <div class="row" style="margin-top:10px"><button type="button" id="save" class="secondary">Save URL</button></div>
+      <div class="two">
+        <div><label for="id">Brief ID</label><input id="id" value="c500-welcome-001"></div>
+        <div><label for="words">Maximum words</label><input id="words" type="number" min="30" max="90" value="55"></div>
+      </div>
+      <label for="audience">Audience</label><input id="audience" value="Synthetic new HarbourStay guests">
+      <label for="objective">Objective</label><input id="objective" value="Explain arrival and breakfast basics in a warm welcome">
+      <label for="facts">Approved facts — one per line</label>
+      <textarea id="facts">Reception is staffed 24 hours.
+Standard check-in begins at 3:00 pm.
+Breakfast is served 7:00-10:30 am.</textarea>
+      <label for="cta">Call to action</label><input id="cta" value="Contact reception for booking-specific help.">
+      <div class="approval">
+        <strong>Approval snapshot</strong>
+        <label for="approvedScript">Exact reviewed script</label>
+        <textarea id="approvedScript" readonly>No draft yet.</textarea>
+        <label for="approvedHash">SHA-256 script hash</label>
+        <input id="approvedHash" readonly value="No draft yet.">
+        <label for="approvedDisclosure">Exact synthetic-media disclosure</label>
+        <input id="approvedDisclosure" readonly value="No draft yet.">
+      </div>
+      <div class="row">
+        <button id="draft" type="submit">Generate Draft</button>
+        <button id="render" type="button" disabled>Approve Exact Draft &amp; Render</button>
+      </div>
+      <p class="small">Generate Draft makes zero HeyGen calls. Render sends the unchanged script and hash shown above; submit it once.</p>
+    </form>
+    <aside class="card">
+      <strong>Workflow result</strong>
+      <p id="status">Ready. Save a Test URL and start n8n listening.</p>
+      <pre id="result">No response yet.</pre>
+      <p id="link"></p>
+    </aside>
+  </section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+let lastDraft=null;
+$('url').value = localStorage.getItem('c500VideoWebhook') || '';
+$('save').onclick = () => { localStorage.setItem('c500VideoWebhook',$('url').value.trim()); $('status').textContent='Webhook URL saved in this browser.'; $('status').className='ok'; };
+async function callWorkflow(payload, button, runningText, reenable=true) {
+  const endpoint=$('url').value.trim(); if(!endpoint){ $('status').textContent='Enter and save a webhook URL.'; $('status').className='bad'; return null; }
+  button.disabled=true; $('status').textContent=runningText; $('status').className=''; $('result').textContent=JSON.stringify(payload,null,2); $('link').innerHTML='';
+  try{
+    const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','X-C500-Request-ID':'video-'+Date.now()},body:JSON.stringify(payload)});
+    const text=await res.text(); let data; try{data=JSON.parse(text)}catch{data={raw:text}};
+    $('result').textContent=JSON.stringify(data,null,2); if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    $('status').textContent=`Workflow returned HTTP ${res.status}. Inspect the terminal status and n8n execution evidence.`; $('status').className='ok';
+    if(data.video_url){ const a=document.createElement('a'); a.href=data.video_url; a.target='_blank'; a.rel='noopener'; a.textContent='Open completed provider video'; $('link').append(a); }
+    return data;
+  }catch(error){ $('status').textContent=`Request failed: ${error.message}`; $('status').className='bad'; }
+  finally{if(reenable) button.disabled=false;}
+  return null;
+}
+$('brief').onsubmit = async (event) => {
+  event.preventDefault();
+  const payload={action:'draft',brief_id:$('id').value.trim(),audience:$('audience').value.trim(),objective:$('objective').value.trim(),approved_facts:$('facts').value.split('\n').map(x=>x.trim()).filter(Boolean),call_to_action:$('cta').value.trim(),max_words:Number($('words').value)};
+  const data=await callWorkflow(payload,$('draft'),'Generating a bounded draft. This path must not call HeyGen.');
+  if(data?.status==='draft_ready'){
+    lastDraft={brief_id:data.brief_id,approved_script:data.spoken_script,approved_script_hash:data.script_hash,approved_disclosure:data.disclosure};
+    $('approvedScript').value=data.spoken_script; $('approvedHash').value=data.script_hash; $('approvedDisclosure').value=data.disclosure; $('render').disabled=false;
+    $('status').textContent='Draft ready. Review the exact script and hash before rendering.';
+  }
+};
+$('render').onclick = async () => {
+  if(!lastDraft){ $('status').textContent='Generate and review a draft first.'; $('status').className='bad'; return; }
+  const payload={action:'render',brief_id:lastDraft.brief_id,approved_script:lastDraft.approved_script,approved_script_hash:lastDraft.approved_script_hash,approved_disclosure:lastDraft.approved_disclosure,approved_for_render:true};
+  $('render').disabled=true;
+  await callWorkflow(payload,$('render'),'Rendering the exact approved snapshot. Do not submit again; this can take several minutes.',false);
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>C500 HarbourStay Voice Console</title>
+  <style>
+    :root { color-scheme: light; --ink:#172033; --muted:#657086; --line:#dce2eb; --blue:#2563eb; --navy:#0f2748; --ice:#f3f7fc; --ok:#087a55; --bad:#b42318; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; font:16px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--ink); background:linear-gradient(135deg,#edf4ff,#ffffff 48%,#e8f7f3); }
+    main { width:min(940px,calc(100% - 32px)); margin:40px auto; background:#fff; border:1px solid rgba(15,39,72,.1); border-radius:24px; box-shadow:0 24px 70px rgba(15,39,72,.12); overflow:hidden; }
+    header { padding:30px 34px; color:#fff; background:linear-gradient(120deg,var(--navy),#174f91); }
+    .eyebrow { margin:0 0 8px; font-size:12px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#b9d5ff; }
+    h1 { margin:0; font-size:clamp(28px,5vw,46px); line-height:1.05; }
+    header p { max-width:690px; margin:12px 0 0; color:#dbeafe; }
+    .content { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:24px; padding:30px 34px 36px; }
+    .card { border:1px solid var(--line); border-radius:18px; padding:20px; background:#fff; }
+    .tips { background:var(--ice); }
+    label { display:block; margin-bottom:8px; font-weight:750; }
+    input { width:100%; padding:12px 14px; border:1px solid #b9c4d3; border-radius:10px; font:inherit; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+    button { appearance:none; border:0; border-radius:999px; padding:11px 18px; font:700 15px/1 inherit; cursor:pointer; background:var(--blue); color:#fff; }
+    button.secondary { background:#e8eef8; color:var(--navy); }
+    button.stop { background:#c33; }
+    button:disabled { opacity:.48; cursor:not-allowed; }
+    #meter { height:10px; margin:20px 0 8px; border-radius:99px; background:#e5eaf1; overflow:hidden; }
+    #meter span { display:block; width:0; height:100%; background:linear-gradient(90deg,#34d399,#2563eb); transition:width .12s; }
+    #status { min-height:52px; padding:12px 14px; margin-top:16px; border-radius:12px; background:#f7f9fc; color:var(--muted); white-space:pre-wrap; }
+    #status.ok { background:#eaf8f2; color:var(--ok); }
+    #status.bad { background:#fff0ee; color:var(--bad); }
+    audio { width:100%; margin-top:14px; }
+    ul { padding-left:20px; margin-bottom:0; }
+    code { font-size:.86em; }
+    .notice { font-size:13px; color:var(--muted); margin-top:14px; }
+    @media(max-width:760px){ .content{grid-template-columns:1fr;padding:22px;} header{padding:26px 22px;} }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">C500 · Lab 1 · Synthetic training console</p>
+    <h1>HarbourStay Voice Concierge</h1>
+    <p>Record one short synthetic question. The page sends audio to your n8n webhook and plays the returned MP3. It never asks for an API key.</p>
+  </header>
+  <section class="content">
+    <div class="card">
+      <label for="url">n8n Webhook URL</label>
+      <input id="url" type="url" autocomplete="off" placeholder="https://your-n8n.example/webhook-test/c500-voice-concierge">
+      <div class="row">
+        <button id="save" class="secondary">Save URL</button>
+        <button id="record">Start recording</button>
+        <button id="stop" class="stop" disabled>Stop</button>
+        <button id="send" disabled>Send to agent</button>
+      </div>
+      <div id="meter" aria-hidden="true"><span></span></div>
+      <div id="status" role="status" aria-live="polite">Ready. Save a Test URL, start n8n listening, then record a short question.</div>
+      <audio id="reply" controls hidden></audio>
+      <p class="notice">Microphone access normally requires localhost or HTTPS. Only the webhook URL is stored in this browser.</p>
+    </div>
+    <aside class="card tips">
+      <strong>Use synthetic questions</strong>
+      <ul>
+        <li>“What time can I check in if I arrive late?”</li>
+        <li>“When is breakfast served?”</li>
+        <li>Handoff check: “Change Alex Tan’s booking.”</li>
+      </ul>
+      <p><strong>Expected contract</strong><br><code>multipart/form-data</code><br>binary field <code>data</code><br>response <code>audio/mpeg</code></p>
+    </aside>
+  </section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const url = $('url'), status = $('status'), reply = $('reply');
+url.value = localStorage.getItem('c500VoiceWebhook') || '';
+let recorder, chunks = [], blob, startedAt, meterTimer;
+function setStatus(message, tone='') { status.className = tone; status.textContent = message; }
+$('save').onclick = () => { localStorage.setItem('c500VoiceWebhook', url.value.trim()); setStatus('Webhook URL saved in this browser.', 'ok'); };
+$('record').onclick = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    chunks = []; blob = null; recorder = new MediaRecorder(stream); startedAt = Date.now();
+    recorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+    recorder.onstop = () => {
+      blob = new Blob(chunks, {type: recorder.mimeType || 'audio/webm'});
+      stream.getTracks().forEach(t => t.stop()); clearInterval(meterTimer); $('meter').firstElementChild.style.width='100%';
+      $('send').disabled = !blob.size; $('record').disabled = false; $('stop').disabled = true;
+      setStatus(`Recorded ${(blob.size/1024).toFixed(1)} KB as ${blob.type}. Ready to send.`, 'ok');
+    };
+    recorder.start(); $('record').disabled = true; $('stop').disabled = false; $('send').disabled = true; reply.hidden = true;
+    meterTimer = setInterval(() => { const pct = Math.min(100,(Date.now()-startedAt)/150); $('meter').firstElementChild.style.width = pct+'%'; },120);
+    setStatus('Recording… speak one short synthetic question, then stop.');
+  } catch (error) { setStatus(`Microphone error: ${error.message}`, 'bad'); }
+};
+$('stop').onclick = () => { if (recorder && recorder.state !== 'inactive') recorder.stop(); };
+$('send').onclick = async () => {
+  const endpoint = url.value.trim();
+  if (!endpoint || !blob) return setStatus('Save a webhook URL and record audio first.', 'bad');
+  $('send').disabled = true; setStatus('Sending audio and waiting for the complete listen-think-talk workflow…');
+  const form = new FormData(); form.append('data', blob, 'c500-question.webm');
+  try {
+    const res = await fetch(endpoint, {method:'POST', body:form, headers:{'X-C500-Request-ID':'browser-'+Date.now()}});
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0,240)}`);
+    const audio = await res.blob(); if (!audio.size) throw new Error('The webhook returned an empty body.');
+    reply.src = URL.createObjectURL(audio); reply.hidden = false; await reply.play();
+    setStatus(`Success: HTTP ${res.status}, ${(audio.size/1024).toFixed(1)} KB, ${audio.type || 'binary audio'}. Inspect the n8n execution for transcript, route and timings.`, 'ok');
+  } catch (error) { setStatus(`Request failed: ${error.message}`, 'bad'); }
+  finally { $('send').disabled = false; }
+};
+</script>
+</body>
+</html>
+

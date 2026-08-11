@@ -1,0 +1,80 @@
+{
+  "name": "C500 Lab 03 - Status Resume",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger", "typeVersion": 1, "position": [-700, 40],
+      "id": "c50003f0-0000-4000-8000-000000000001", "name": "Manual Trigger"
+    },
+    {
+      "parameters": {"assignments": {"assignments": [
+        {"id": "video-id", "name": "video_id", "value": "<KNOWN_HEYGEN_VIDEO_ID>", "type": "string"},
+        {"id": "attempt", "name": "poll_attempt", "value": 0, "type": "number"},
+        {"id": "maximum", "name": "maximum_poll_attempts", "value": 20, "type": "number"}
+      ]}, "options": {}},
+      "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [-480, 40],
+      "id": "c50003f0-0000-4000-8000-000000000002", "name": "Known Job"
+    },
+    {
+      "parameters": {"amount": 15, "unit": "seconds"},
+      "type": "n8n-nodes-base.wait", "typeVersion": 1.1, "position": [-240, 40],
+      "id": "c50003f0-0000-4000-8000-000000000003", "name": "Wait Before Status", "webhookId": "c500-lab03-status-wait"
+    },
+    {
+      "parameters": {"url": "https://api.heygen.com/v1/video_status.get", "authentication": "genericCredentialType", "genericAuthType": "httpHeaderAuth", "sendQuery": true, "queryParameters": {"parameters": [{"name": "video_id", "value": "={{ $json.video_id }}"}]}, "options": {}},
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [0, 40], "onError": "continueErrorOutput",
+      "id": "c50003f0-0000-4000-8000-000000000004", "name": "Check Known Video Status"
+    },
+    {
+      "parameters": {"jsCode": "const prior=$('Wait Before Status').item.json; const data=$json.data ?? $json; const provider_status=String(data.status??'processing').toLowerCase(); const poll_attempt=Number(prior.poll_attempt??0)+1; let status='processing'; if(provider_status==='completed') status='completed'; else if(['failed','error'].includes(provider_status)||poll_attempt>=Number(prior.maximum_poll_attempts??20)) status='review_required'; return [{json:{...prior,provider_status,status,poll_attempt,video_url:String(data.video_url??''),thumbnail_url:String(data.thumbnail_url??''),error_class:status==='review_required'?(provider_status==='failed'?'provider_failed':'poll_timeout'):''}}];"},
+      "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [240, 0],
+      "id": "c50003f0-0000-4000-8000-000000000005", "name": "Normalise Known Status"
+    },
+    {
+      "parameters": {"jsCode": "const prior=$('Wait Before Status').item.json; return [{json:{...prior,status:'review_required',error_class:'status_request_failed',error_detail:String($json.message??$json.error?.message??$json.error??'status request failed').slice(0,240)}}];"},
+      "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [240, 180],
+      "id": "c50003f0-0000-4000-8000-000000000006", "name": "Normalise Status Error"
+    },
+    {
+      "parameters": {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2}, "conditions": [{"id": "complete", "leftValue": "={{ $json.status }}", "rightValue": "completed", "operator": {"type": "string", "operation": "equals"}}], "combinator": "and"}, "options": {}},
+      "type": "n8n-nodes-base.if", "typeVersion": 2.2, "position": [480, 0],
+      "id": "c50003f0-0000-4000-8000-000000000007", "name": "Completed"
+    },
+    {
+      "parameters": {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2}, "conditions": [{"id": "review", "leftValue": "={{ $json.status }}", "rightValue": "review_required", "operator": {"type": "string", "operation": "equals"}}], "combinator": "and"}, "options": {}},
+      "type": "n8n-nodes-base.if", "typeVersion": 2.2, "position": [700, 80],
+      "id": "c50003f0-0000-4000-8000-000000000008", "name": "Review Required"
+    },
+    {
+      "parameters": {"jsCode": "return [{json:{...$json,resume_result:'completed'}}];"},
+      "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [700, -100],
+      "id": "c50003f0-0000-4000-8000-000000000009", "name": "Completed Evidence"
+    },
+    {
+      "parameters": {"jsCode": "return [{json:{...$json,resume_result:'operator_review'}}];"},
+      "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [940, 20],
+      "id": "c50003f0-0000-4000-8000-000000000010", "name": "Review Evidence"
+    },
+    {
+      "parameters": {"content": "## Status-only recovery\nSet a known video_id and select the HeyGen header credential. This workflow contains no video-generation request. It checks only the existing job, with bounded waits and a terminal operator-review path.", "height": 190, "width": 440, "color": 5},
+      "type": "n8n-nodes-base.stickyNote", "typeVersion": 1, "position": [-700, -240],
+      "id": "c50003f0-0000-4000-8000-000000000011", "name": "Resume Safety Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {"main": [[{"node": "Known Job", "type": "main", "index": 0}]]},
+    "Known Job": {"main": [[{"node": "Wait Before Status", "type": "main", "index": 0}]]},
+    "Wait Before Status": {"main": [[{"node": "Check Known Video Status", "type": "main", "index": 0}]]},
+    "Check Known Video Status": {"main": [[{"node": "Normalise Known Status", "type": "main", "index": 0}], [{"node": "Normalise Status Error", "type": "main", "index": 0}]]},
+    "Normalise Known Status": {"main": [[{"node": "Completed", "type": "main", "index": 0}]]},
+    "Completed": {"main": [[{"node": "Completed Evidence", "type": "main", "index": 0}], [{"node": "Review Required", "type": "main", "index": 0}]]},
+    "Review Required": {"main": [[{"node": "Review Evidence", "type": "main", "index": 0}], [{"node": "Wait Before Status", "type": "main", "index": 0}]]},
+    "Normalise Status Error": {"main": [[{"node": "Review Evidence", "type": "main", "index": 0}]]}
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "versionId": "c50003f0-0000-4000-8000-000000009999",
+  "meta": {"templateCredsSetupCompleted": false},
+  "tags": []
+}

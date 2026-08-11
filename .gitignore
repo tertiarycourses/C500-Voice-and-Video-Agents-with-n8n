@@ -1,0 +1,21 @@
+# Local evidence may contain provider and execution identifiers.
+evidence/
+
+# Local environment and credential files.
+.env
+.env.*
+!.env.example
+
+# Office lock files and operating-system noise.
+~$*
+.DS_Store
+Thumbs.db
+
+# Python caches created by the courseware generator.
+__pycache__/
+*.py[cod]
+
+# Local render and QA scratch directories.
+.tmp*/
+tmp*/
+
