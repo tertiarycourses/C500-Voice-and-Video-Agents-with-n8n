@@ -1,119 +1,83 @@
-<div align="center">
-
 # Voice and Video Agents with n8n
 
-[![Course](https://img.shields.io/badge/Course-C500-1f6feb?style=for-the-badge)](https://www.tertiarycourses.com.sg/voice-and-video-agents-with-n8n.html)
-[![n8n](https://img.shields.io/badge/Built_with-n8n-EA4B71?style=for-the-badge&logo=n8n&logoColor=white)](https://n8n.io)
-[![Voice](https://img.shields.io/badge/Agent-Voice-0f766e?style=for-the-badge)](#lab-1--build-a-listen-think-talk-web-voice-concierge)
-[![Video](https://img.shields.io/badge/Agent-Video-6d28d9?style=for-the-badge)](#lab-3--generate-a-talking-head-welcome-video)
-[![License](https://img.shields.io/badge/Use-Educational-f59e0b?style=for-the-badge)](#educational-use)
+Build chatbots, RAG assistants, voice agents and AI avatar/video automations with **n8n** — every lab is a runnable n8n workflow plus, where it applies, a real web front end.
 
-**Concept-first courseware and connected n8n labs for building voice and avatar-video agents — from browser and Telegram audio to an asynchronous, governed video campaign pipeline.**
+| Course detail | Information |
+|---|---|
+| Course code | `C500` |
+| Programme | Non-WSQ |
+| Duration | 2 days, 15 hours (9:30am – 5:30pm, 7.5 instructional hours a day) |
+| Registration | **[View course details and register](https://www.tertiarycourses.com.sg/voice-and-video-agents-with-n8n.html)** |
+| Provider | Tertiary Infotech Academy Pte Ltd |
 
-[Course page](https://www.tertiarycourses.com.sg/voice-and-video-agents-with-n8n.html) · [Learner Guide](LG-Voice%20and%20Video%20Agents%20with%20n8n%20%28C500%29.md) · [Labs](labs/README.md) · [Report an issue](https://github.com/tertiarycourses/C500-Voice-and-Video-Agents-with-n8n/issues)
+## About the course
 
-</div>
+The course teaches you to design, build, test and improve practical AI automations using n8n, Ollama, RAG, ElevenLabs, Vapi, HeyGen, LiveAvatar, Google Veo 3.1 and open-source lip-sync rendering. The emphasis is engineering judgement, not "click nodes until it works": every lab runs the agentic AI loop — **Define → Build → Observe → Evaluate → Improve → Guardrail → Document** — and produces evidence you keep: workflow exports, execution traces, call transcripts and generated media. At least 70% of the course is hands-on.
 
-> [!NOTE]
-> These are the official learning materials for **Voice and Video Agents with n8n**, course code **C500**, by Tertiary Courses / Tertiary Infotech Academy.
+## Learning outcomes
 
-## Course package
+By the end of the course, you will be able to:
 
-The repository is built from one shared content source so the topic order, learning outcomes, lab titles and verification steps stay aligned across:
+- **LO1** — Analyse the strengths, limitations and feasibility of AI digital human technology within industry contexts.
+- **LO2** — Evaluate the performance of AI digital human applications and analyse their effectiveness.
+- **LO3** — Assess the design and improvements for AI digital human technology.
 
-- trainer slides and learner-slide PDF;
-- Learner Guide in Word, PDF and Markdown;
-- Lesson Plan in Word and PDF;
-- four detailed lab files, importable n8n starters and two browser apps.
+## Topics covered
 
-Generated documents are in [`courseware/`](courseware/). The learner-facing lab index is [`labs/README.md`](labs/README.md).
+| Topic | Theme | Labs | When |
+|---|---|---|---|
+| **1** | **Chatbot** — agents, retrieval and grounded answers | Labs 0 – 3 | Day 1 morning |
+| **2** | **Voice Agent** — ElevenLabs calls your n8n tools; with Vapi your n8n workflow *is* the model | Labs 4 – 5 | Day 1 afternoon |
+| **3** | **Video Agent** — lip-sync, avatars and text-to-video | Labs 6 – 10 | Day 2 |
 
-## Connected HarbourStay labs
+## Labs
 
-### Lab 1 — Build a Listen-Think-Talk Web Voice Concierge
+The same labs ship twice. Pick one tree and stay in it — the model, the credential and the webhook base all differ.
 
-Browser microphone -> n8n Webhook -> Whisper transcription -> bounded AI Agent -> ElevenLabs speech -> playable MP3 response.
+| | [`labs_local_n8n/`](labs_local_n8n/) | [`labs_remote_n8n/`](labs_remote_n8n/) |
+|---|---|---|
+| **n8n** | your own Docker stack ([`lab0/`](labs_local_n8n/lab0/)) | `n8n.tertiarytraining.com` (hosted) |
+| **Chat model** | Ollama `gemma4:latest` | OpenAI `gpt-4.1-mini` |
+| **Embeddings** | Ollama `nomic-embed-text:latest` | OpenAI `text-embedding-3-small` |
+| **Needs ngrok?** | Yes, when a vendor's servers must call in | No — already public |
+| **Learner guide** | [`LEARNER_GUIDE_LOCAL.md`](LEARNER_GUIDE_LOCAL.md) | [`LEARNER_GUIDE_CLOUD.md`](LEARNER_GUIDE_CLOUD.md) |
 
-Start with [`labs/lab-01-build-a-listen-think-talk-web-voice-concierge.md`](labs/lab-01-build-a-listen-think-talk-web-voice-concierge.md), import [`lab01-voice-concierge.json`](labs/workflows/lab01-voice-concierge.json), then open the [`voice-console`](labs/apps/voice-console/).
+**Local** is the classroom default: free, private, nothing to bill. **Remote** is for learners who cannot run Docker.
 
-### Lab 2 — Connect the Concierge to Telegram Voice Notes
+| Lab | Title | What you build | Local | Remote |
+|---|---|---|---|---|
+| **0** | Set up n8n locally | Docker + n8n + Postgres + Ollama | [lab0](labs_local_n8n/lab0/) | — |
+| **1** | Your First AI Agent | Chat trigger, AI Agent node and a system prompt you control | [lab1](labs_local_n8n/lab1/) | [lab1](labs_remote_n8n/lab1/) |
+| **2** | RAG IT Support Chatbot | PDF → embeddings → grounded answers that admit what they do not know | [lab2](labs_local_n8n/lab2/) | [lab2](labs_remote_n8n/lab2/) |
+| **3** | CX Agent with RAG (Cook & Bake Academy) | A website course advisor over a brochure knowledge base | [lab3](labs_local_n8n/lab3/) | [lab3](labs_remote_n8n/lab3/) |
+| **4** | Voice Booking Agent with ElevenLabs (GG Hair Salon) | Nina books into a real Google Calendar, by voice | [lab4](labs_local_n8n/lab4/) | [lab4](labs_remote_n8n/lab4/) |
+| **5** | Grounded FAQ Voice Agent with Vapi (MediRefill) | Ava, a refill assistant that refuses medical advice | [lab5](labs_local_n8n/lab5/) | [lab5](labs_remote_n8n/lab5/) |
+| **6** | Lip-Sync Face-Off: MuseTalk vs HeyGen | One script and portrait through a local and a cloud renderer | [lab6](labs_local_n8n/lab6/) | [lab6](labs_remote_n8n/lab6/) |
+| **7** | Avatar News Video with HeyGen (GG News Studio) | A script agent that drives an avatar presenter | [lab7](labs_local_n8n/lab7/) | [lab7](labs_remote_n8n/lab7/) |
+| **7-os** | Open-Source News Avatar | The same video, rendered free on your own machine | [lab7-opensource](labs_local_n8n/lab7-opensource/) | [lab7-opensource](labs_remote_n8n/lab7-opensource/) |
+| **8** | Interactive Avatar Brain (Aria, In-Browser) | A low-latency talking avatar in the browser | [lab8](labs_local_n8n/lab8/) | [lab8](labs_remote_n8n/lab8/) |
+| **9** | Interactive Avatar Session (Nova, HeyGen LiveAvatar) | An embedded interactive avatar | [lab9](labs_local_n8n/lab9/) | [lab9](labs_remote_n8n/lab9/) |
+| **10** | AI Video Generation with Gemini Veo 3 (Veo Studio) | Idea → shot script → 8-second cinematic clip | [lab10](labs_local_n8n/lab10/) | [lab10](labs_remote_n8n/lab10/) |
 
-Telegram voice-file adapter -> the same concierge role -> spoken reply, bounded memory, a text-message fallback and a documented telephone-channel contract.
+### Usage notes
 
-Use [`labs/lab-02-connect-the-concierge-to-telegram-voice-notes.md`](labs/lab-02-connect-the-concierge-to-telegram-voice-notes.md) and [`lab02-telegram-voice-agent.json`](labs/workflows/lab02-telegram-voice-agent.json).
+- **Serve the lab web apps, never open them off the disk.** Use each lab's `start.command` (macOS) or `start.bat` (Windows). On a `file://` URL the browser blocks `fetch()` and the page fails with misleading errors.
+- **Windows: unblock the ZIP before extracting** (right-click → Properties → tick *Unblock*). `git clone` avoids this.
+- **A workflow will not run until it is Active.** An inactive workflow's `/webhook/…` path returns `404`. Every lab website has a *Test connection* button that names the failure.
+- **API keys stay in n8n credentials or a local `.env`** — never in browser JavaScript, Markdown, screenshots or committed JSON.
 
-### Lab 3 — Generate a Talking-Head Welcome Video
+## Courseware
 
-Synthetic brief -> structured draft + SHA-256 -> exact human approval snapshot -> authorised HeyGen avatar profile -> create-once job -> bounded status polling -> verified video URL.
+| Document | Files |
+|---|---|
+| Slide deck (v2.0) | [PPTX](<courseware/Voice and Video Agents with n8n (C500)-v2.0.pptx>) · [PDF](<courseware/Voice and Video Agents with n8n (C500)-v2.0.pdf>) |
+| Learner Guide | [DOCX](<courseware/LG-Voice and Video Agents with n8n (C500).docx>) · [PDF](<courseware/LG-Voice and Video Agents with n8n (C500).pdf>) · [Markdown](<courseware/LG-Voice and Video Agents with n8n (C500).md>) |
+| Lesson Plan | [DOCX](<courseware/LP-Voice and Video Agents with n8n (C500).docx>) · [PDF](<courseware/LP-Voice and Video Agents with n8n (C500).pdf>) · [Markdown](<courseware/LP-Voice and Video Agents with n8n (C500).md>) |
 
-Use [`labs/lab-03-generate-a-talking-head-welcome-video.md`](labs/lab-03-generate-a-talking-head-welcome-video.md), [`lab03-avatar-video.json`](labs/workflows/lab03-avatar-video.json), the create-free [`lab03-status-resume.json`](labs/workflows/lab03-status-resume.json) and the [`video-studio`](labs/apps/video-studio/).
+## Distribution
 
-### Lab 4 — Automate a Governed Video Campaign Pipeline
+This repository is the public courseware for C500: slides, Learner Guide, Lesson Plan and both lab trees. Trainer-only and source reference material is kept out of the public repository.
 
-n8n Data Table queue and persistent run ledger -> exact approval/hash/destination checks -> avatar-video render -> release checks -> disclosed private Telegram preview.
+---
 
-Use [`labs/lab-04-automate-a-governed-video-campaign-pipeline.md`](labs/lab-04-automate-a-governed-video-campaign-pipeline.md) and [`lab04-video-campaign-pipeline.json`](labs/workflows/lab04-video-campaign-pipeline.json).
-
-## Architecture
-
-```text
-VOICE CORE
-  Browser multipart audio / Telegram voice file
-       -> validate binary media
-       -> Whisper transcription
-       -> bounded HarbourStay AI Agent
-       -> ElevenLabs speech
-       -> browser MP3 / Telegram audio
-
-VIDEO PIPELINE
-  Approved brief or campaign queue row
-       -> structured script and claim checks
-       -> authorised avatar campaign profile
-       -> HeyGen create once -> store video_id
-       -> wait -> status -> completed / failed / operator review
-       -> release checks -> private distribution -> run ledger
-```
-
-## Getting started
-
-1. Clone this repository and open the matching lab Markdown.
-2. Import its JSON from [`labs/workflows/`](labs/workflows/).
-3. Reselect only your learner-owned credentials in n8n; exported starters contain no usable secrets.
-4. Keep media synthetic, clips short and destinations private.
-5. Run the stated positive path and bounded failure path, then record redacted evidence with [`labs/evidence-template.md`](labs/evidence-template.md).
-
-See the Learner Guide for concept explanations, provider contracts, troubleshooting, accessibility, consent, cost and deployment guidance.
-
-## Project structure
-
-```text
-C500-Voice-and-Video-Agents-with-n8n/
-├── README.md
-├── LG-Voice and Video Agents with n8n (C500).md
-├── courseware/                 # PPT/PDF, Learner Guide and Lesson Plan
-├── labs/
-│   ├── README.md               # aligned lab index
-│   ├── lab-01-*.md ... lab-04-*.md
-│   ├── workflows/              # credential-free n8n starter exports
-│   ├── apps/                   # browser Voice Console and Video Studio
-│   └── evidence-template.md
-├── reference/                  # authoritative research links
-└── .agents/skills/non-wsq-courseware-build/
-    └── build/                  # single-source generators and content modules
-```
-
-## Safety and credentials
-
-- Use only voices, avatars, bots, accounts, media and channels you are authorised to use.
-- Disclose automated and synthetic media where viewers could otherwise be misled.
-- Keep provider keys and bot tokens in n8n credential storage; never paste them into prompts, workflow exports, evidence or Git.
-- Treat speech and external content as data, not authority to change roles, tools, approvals or destinations.
-- Keep consequential account changes, payments, emergencies and public releases behind verified human control.
-
-## Educational use
-
-This repository is provided for educational use as part of course C500. © Tertiary Infotech Academy Pte Ltd. All rights reserved.
-
-## Developed by
-
-**Tertiary Infotech Academy Pte Ltd** — [Tertiary Courses](https://www.tertiarycourses.com.sg/voice-and-video-agents-with-n8n.html)
+© 2026 Tertiary Infotech Academy Pte Ltd · [www.tertiarycourses.com.sg](https://www.tertiarycourses.com.sg)

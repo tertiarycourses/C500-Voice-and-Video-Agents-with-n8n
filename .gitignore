@@ -19,3 +19,6 @@ __pycache__/
 .tmp*/
 tmp*/
 
+
+# Read-only WSQ source used for the conversion — never commit.
+source-wsq/
